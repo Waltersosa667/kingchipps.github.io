@@ -1,2 +1,2 @@
-# kingchipps.github.io
+# kingrup.github.io
 Landing
