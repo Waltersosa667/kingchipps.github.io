@@ -1046,13 +1046,16 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 fbq('init', '1793997641725385');
 fbq('track', 'PageView');
 
-// Evento Contactar: se dispara al tocar cualquier enlace de WhatsApp
+// Evento Contactar: al tocar JUGAR AHORA o cualquier enlace de WhatsApp
 document.addEventListener('click', function (e) {
-  var a = e.target.closest('a');
-  if (a && /wa\.me|whatsapp\.com/.test(a.href)) {
+  var el = e.target.closest('a, button');
+  if (!el) return;
+  var href = el.href || '';
+  var txt = (el.textContent || '').toLowerCase();
+  if (/wa\.me|wa\.link|whatsapp/.test(href) || txt.indexOf('jugar ahora') !== -1) {
     fbq('track', 'Contact');
   }
-});
+}, true);
 </script>
 <noscript><img height="1" width="1" style="display:none"
 src="https://www.facebook.com/tr?id=1793997641725385&ev=PageView&noscript=1"
