@@ -162,7 +162,7 @@ h1{
   max-width:34ch;
   margin:18px auto 0;
 }
-     /* Campo de nombre (antes del botón de WhatsApp) */
+  /* Campo de nombre (antes del botón de WhatsApp) */
 .name-field{width:100%;max-width:400px;display:grid;gap:12px;justify-items:center}
 .name-label{
   display:inline-block;padding:9px 18px;border-radius:999px;
@@ -170,6 +170,17 @@ h1{
   font-size:.82rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
   color:#fff;text-align:center;
 }
+.name-input{
+  width:100%;min-height:62px;padding:0 1.4rem;
+  border-radius:999px;border:2px solid var(--violet-400);
+  background:rgba(10,6,22,.75);color:var(--text);
+  font:inherit;font-size:1.15rem;font-weight:700;text-align:center;
+  outline:0;transition:border-color .2s ease,box-shadow .2s ease;
+}
+.name-input::placeholder{color:var(--muted);opacity:1}
+.name-input:focus{border-color:var(--gold-1);box-shadow:0 0 0 4px rgba(255,198,92,.2)}
+.name-input.error{border-color:#ff6b6b;box-shadow:0 0 0 4px rgba(255,107,107,.22);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}} 
 .hero-actions{margin-top:30px;display:grid;gap:14px;justify-items:center}
 .hero-note{font-size:.875rem;color:var(--muted)}
 .hero-note strong{color:var(--lilac);font-weight:600}
