@@ -416,6 +416,22 @@ dialog::backdrop{background:rgba(5,2,12,.72);-webkit-backdrop-filter:blur(4px);b
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+  .name-box{width:100%;max-width:400px;display:grid;gap:10px;justify-items:center}
+.name-hint{
+  font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--lilac);border:1px solid var(--line);background:var(--surface);
+  border-radius:999px;padding:8px 16px;
+}
+.name-input{
+  width:100%;min-height:58px;padding:0 22px;
+  border-radius:999px;border:1.5px solid rgba(190,170,255,.5);
+  background:rgba(36,18,85,.55);color:var(--text);
+  font:inherit;font-size:1.05rem;font-weight:600;text-align:center;
+}
+.name-input::placeholder{color:var(--lilac);opacity:.85}
+.name-input:focus{outline:none;border-color:var(--gold-1);box-shadow:0 0 0 3px rgba(255,217,130,.25)}
+.name-input.err{border-color:#ff7a7a;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}   
 </style>
 </head>
 
@@ -428,7 +444,11 @@ dialog::backdrop{background:rgba(5,2,12,.72);-webkit-backdrop-filter:blur(4px);b
   </a>
   <span class="age-chip">Solo +18</span>
 </header>
-
+<div class="name-box">
+  <span class="name-hint">Escribí tu nombre y tocá el botón</span>
+  <input type="text" id="nombre" class="name-input" placeholder="Ingresá tu nombre"
+         maxlength="40" autocomplete="given-name" enterkeyhint="go">
+</div>
 <main id="inicio">
 
   <!-- ===================== HERO ===================== -->
@@ -974,21 +994,36 @@ const WHATSAPP_MESSAGE = "Hola, quiero jugar. ¿Haces un usuario?";
     return /^\d{8,15}$/.test(n);                  // largo razonable de un número
   }
 
-  function openWhatsApp() {
-    var pool = [WHATSAPP_1, WHATSAPP_2].map(cleanNumber).filter(isValid);
+  var nameInput = document.getElementById("nombre");
 
-    if (pool.length === 0) {
-      showToast("Falta configurar los números de WhatsApp en el código (WHATSAPP_1 y WHATSAPP_2).");
-      return;
-    }
+nameInput.addEventListener("input", function () { nameInput.classList.remove("err"); });
+nameInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); openWhatsApp(); }
+});
 
-    // Cada clic elige al azar uno de los números válidos
-    var number = pool[Math.floor(Math.random() * pool.length)];
-    var url = "https://wa.me/" + number + "?text=" + encodeURIComponent(WHATSAPP_MESSAGE);
-
-    // location.href funciona bien en Android (app o web) e iPhone (Safari/Chrome)
-    window.location.href = url;
+function openWhatsApp() {
+  var pool = [WHATSAPP_1, WHATSAPP_2].map(cleanNumber).filter(isValid);
+  if (pool.length === 0) {
+    showToast("Falta configurar los números de WhatsApp en el código (WHATSAPP_1 y WHATSAPP_2).");
+    return;
   }
+
+  var nombre = nameInput.value.replace(/\s+/g, " ").trim();
+  if (!nombre) {
+    nameInput.classList.add("err");
+    nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    nameInput.focus({ preventScroll: true });
+    showToast("Escribí tu nombre y después tocá el botón.");
+    return;
+  }
+
+  var number = pool[Math.floor(Math.random() * pool.length)];
+  var mensaje = "Hola, soy " + nombre + ", quiero un usuario";
+  var url = "https://wa.me/" + number + "?text=" + encodeURIComponent(mensaje);
+
+  if (window.fbq) fbq("track", "Contact", { value: 1, currency: "ARS" });
+  window.location.href = url;
+}
 
   document.querySelectorAll("[data-cta]").forEach(function (el) {
     el.addEventListener("click", function (e) {
