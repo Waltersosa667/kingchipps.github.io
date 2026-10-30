@@ -968,6 +968,9 @@ const WHATSAPP_2 = "5493516828562";   // ← Poné acá el segundo número
 
 // Mensaje que aparece escrito de antemano en WhatsApp
 const WHATSAPP_MESSAGE = "Hola, quiero jugar. ¿Haces un usuario?";
+
+// Dirección del CRM (no tocar)
+const CRM_URL = "https://crm-backend-ten-omega.vercel.app";
 /* ================== FIN DE LA CONFIGURACIÓN ================== */
 
 
@@ -1018,11 +1021,58 @@ function openWhatsApp() {
 
   var number = pool[Math.floor(Math.random() * pool.length)];
   var mensaje = "Hola, soy " + nombre + ", quiero un usuario";
-  var url = "https://wa.me/" + number + "?text=" + encodeURIComponent(mensaje);
 
   if (window.fbq) fbq("track", "Contact", { value: 1, currency: "ARS" });
-  window.location.href = url;
+
+  // Guarda el contacto en el CRM y agrega el código (ref) al mensaje de WhatsApp.
+  // Si el CRM tarda más de 1,5 s, abre WhatsApp igual para no perder al cliente.
+  var done = false;
+  function go(code) {
+    if (done) return; done = true;
+    var texto = code ? mensaje + " (ref: " + code + ")" : mensaje;
+    window.location.href = "https://wa.me/" + number + "?text=" + encodeURIComponent(texto);
+  }
+  setTimeout(function () { go(null); }, 1500);
+  try {
+    fetch(CRM_URL + "/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nombre: nombre,
+        fbp: crmCookie("_fbp"),
+        fbc: crmFbc(),
+        utm_source: crmParam("utm_source"),
+        utm_campaign: crmParam("utm_campaign"),
+        utm_content: crmParam("utm_content"),
+        page: location.href.split("#")[0]
+      }),
+      keepalive: true
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { go(d && d.code); })
+      .catch(function () { go(null); });
+  } catch (err) { go(null); }
 }
+
+/* ---------- Datos para el CRM (origen del anuncio) ---------- */
+function crmCookie(name) {
+  var m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+function crmParam(k) {
+  var v = new URLSearchParams(location.search).get(k);
+  try {
+    if (v) sessionStorage.setItem("crm_" + k, v);
+    return v || sessionStorage.getItem("crm_" + k);
+  } catch (e) { return v; }
+}
+function crmFbc() {
+  var c = crmCookie("_fbc");
+  if (c) return c;
+  var id = crmParam("fbclid");
+  return id ? "fb.1." + Date.now() + "." + id : null;
+}
+["utm_source", "utm_campaign", "utm_content", "fbclid"].forEach(crmParam);
 
   document.querySelectorAll("[data-cta]").forEach(function (el) {
     el.addEventListener("click", function (e) {
@@ -1080,15 +1130,10 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 fbq('init', '2334705944036481');
 fbq('track', 'PageView');
 
-// Evento Contactar: al tocar cualquier botón de WhatsApp (hero, barra fija o footer)
-document.addEventListener('click', function (e) {
-  if (e.target.closest('[data-cta]')) {
-    fbq('track', 'Contact', {value: 1, currency: 'ARS'});
-  }
-}, true);
+// El evento Contact se dispara dentro de openWhatsApp (una sola vez por clic)
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1793997641725385&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=2334705944036481&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 </body>
